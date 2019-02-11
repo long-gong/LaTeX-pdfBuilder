@@ -7,7 +7,7 @@ from six import string_types, reraise
 # This will work because makePDF.py puts the appropriate
 # builders directory in sys.path
 from pdf_builders.pdfBuilder import PdfBuilder, external_command, get_texpath, get_platform
-
+from pdf_builders.pdfBuilder import FILE_NOT_FOUND_ERROR_REGEX, TEXLIVEONFLY
 
 # Standard LaTeX warning
 CITATIONS_REGEX = re.compile(
@@ -53,6 +53,7 @@ class BasicBuilder(PdfBuilder):
             engine = 'pdflatex'
 
         latex = [engine, u"-interaction=nonstopmode", u"-synctex=1"]
+        texliveonfly = [TEXLIVEONFLY, u"-interaction=nonstopmode", u"-synctex=1"]
         biber = [u"biber"]
 
         if self.aux_directory is not None:
@@ -120,6 +121,11 @@ class BasicBuilder(PdfBuilder):
                     self.log_output()
                 else:
                     break
+
+        if get_platform() != u'windows' and FILE_NOT_FOUND_ERROR_REGEX.search(self.out):
+            texliveonfly.append(u'--jobname=' + self.job_name)
+            texliveonfly.append(self.tex_name)
+            yield(texliveonfly, 'running {0}'.format(u'texliveonfly'))
 
         # Check for citations
         # We need to run pdflatex twice after bibtex

@@ -6,6 +6,7 @@ from six import string_types, reraise
 
 # builders directory in sys.path
 from pdf_builders.pdfBuilder import PdfBuilder, get_platform
+from pdf_builders.pdfBuilder import FILE_NOT_FOUND_ERROR_REGEX, TEXLIVEONFLY
 import shlex
 
 DEBUG = False
@@ -69,6 +70,7 @@ class TraditionalBuilder(PdfBuilder):
 
         texify = cmd[0] == 'texify'
         latexmk = cmd[0] == 'latexmk'
+        texliveonfly = [TEXLIVEONFLY, u"-interaction=nonstopmode", u"-synctex=1"]
 
         if not engine_used:
             self.display("Your custom command does not allow the engine to be selected\n\n")
@@ -129,8 +131,12 @@ class TraditionalBuilder(PdfBuilder):
 
         # texify wants the .tex extension; latexmk doesn't care either way
         yield (cmd + [self.tex_name], "Invoking " + cmd[0] + "... ")
-
         self.display("done.\n")
+
+        if get_platform() != u'windows' and FILE_NOT_FOUND_ERROR_REGEX.search(self.out):
+            texliveonfly.append(u'--jobname=' + self.job_name)
+            texliveonfly.append(self.tex_name)
+            yield(texliveonfly, 'running {0}'.format(u'texliveonfly'))
 
         # This is for debugging purposes
         if self.display_log:

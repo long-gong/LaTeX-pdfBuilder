@@ -10,21 +10,22 @@ from subprocess import CalledProcessError
 from six import string_types, reraise
 
 
-def run(pdf_builder, cur_working_dir=os.getcwd()):
+def run(pdf_builder, local_cwd=os.getcwd()):
     """
 
     :param pdf_builder:
-    :param cwd:
+    :param local_cwd:
     :return:
     """
     if pdf_builder is None:
         return
-    print(cur_working_dir)
+    print(local_cwd)
     for cmd in pdf_builder.commands():
         try:
             if isinstance(cmd, tuple):
                 print(cmd[1])
-                print(check_output(cmd[0], cwd=cur_working_dir))
+                out = check_output(cmd[0], cwd=local_cwd)
+                builder.set_output(out)
             elif isinstance(cmd, string_types):
                 print(cmd)
         except CalledProcessError as e:

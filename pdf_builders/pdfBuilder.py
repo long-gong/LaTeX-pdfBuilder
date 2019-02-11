@@ -5,6 +5,7 @@ import os
 from shlex import split
 from six import string_types
 import subprocess
+import re
 from pdf_builders.system import which
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 if sys.version_info < (3,):
@@ -34,9 +35,11 @@ else:
     def update_env(old_env, new_env):
         old_env.update(new_env)
 
-import re
 
+FILE_NOT_FOUND_ERROR_REGEX = re.compile(
+    r"! LaTeX Error: File `(.*)/([^/']*)'", re.MULTILINE)
 
+TEXLIVEONFLY = os.path.normpath(os.path.dirname(os.path.abspath(__file__)) + os.pathsep + u'texliveonfly.py')
 DEBUG = False
 
 
@@ -350,7 +353,7 @@ def check_output(command, cwd=None, shell=False, env=None,
                  stdin=__sentinel__, stderr=__sentinel__,
                  preexec_fn=None, use_texpath=True,
                  show_window=False):
-    '''
+    """
     Takes a command to be passed to subprocess.Popen.
     Returns the output if the command was successful.
     By default stderr is redirected to stdout, so this will return any output
@@ -360,7 +363,7 @@ def check_output(command, cwd=None, shell=False, env=None,
     Raises OSError if the executable is not found
     This is pretty much identical to subprocess.check_output(), but
     implemented here since it is unavailable in Python 2.6's library.
-    '''
+    """
     returncode, stdout, stderr = execute_command(
         command,
         cwd=cwd,
