@@ -2,11 +2,35 @@
 from __future__ import print_function
 from pdf_builders.basicBuilder import BasicBuilder
 from pdf_builders.traditionalBuilder import TraditionalBuilder
+from pdf_builders.edasBuilder import EdasBuilder
 from pdf_builders.pdfBuilder import check_output
 import argparse
 import os
 from subprocess import CalledProcessError
 from six import string_types, reraise
+
+
+def run(pdf_builder, cur_working_dir=os.getcwd()):
+    """
+
+    :param pdf_builder:
+    :param cwd:
+    :return:
+    """
+    if pdf_builder is None:
+        return
+    print(cur_working_dir)
+    for cmd in pdf_builder.commands():
+        try:
+            if isinstance(cmd, tuple):
+                print(cmd[1])
+                print(check_output(cmd[0], cwd=cur_working_dir))
+            elif isinstance(cmd, string_types):
+                print(cmd)
+        except CalledProcessError as e:
+            print(e.output)
+            print(e.stderr)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -30,18 +54,24 @@ if __name__ == '__main__':
         'display_bad_boxes': args.display_bad_boxes,
         'open_pdf_on_build': args.open_pdf_on_build
     }
+
+    cur_working_dir = os.path.normpath(os.path.abspath(os.path.dirname(args.tex_root)))
+
+    builder = None
     if args.builder == 'traditional':
         builder = TraditionalBuilder(args.tex_root, None, u'pdftex', None, args.aux_directory,
                                      args.aux_directory, args.jobname, None, builder_settings, {})
-        cur_working_dir = os.path.normpath(os.path.abspath(os.path.dirname(args.tex_root)))
-        print(cur_working_dir)
-        for cmd in builder.commands():
-            try:
-                if isinstance(cmd, tuple):
-                    print(cmd[1])
-                    print(check_output(cmd[0], cwd=cur_working_dir))
-                elif isinstance(cmd, string_types):
-                    print(cmd)
-            except CalledProcessError as e:
-                print(e.output)
-                print(e.stderr)
+    elif args.builder == 'basic':
+        builder = BasicBuilder(args.tex_root, None, u'pdftex', None, args.aux_directory,
+                                     args.aux_directory, args.jobname, None, builder_settings, {})
+    elif args.builder == 'edas':
+        builder = EdasBuilder(args.tex_root, None, u'latex', None, args.aux_directory,
+                                     args.aux_directory, args.jobname, None, builder_settings, {})
+    else:
+        print('Unknown builder: {}'.format(args.builder))
+        parser.print_usage()
+        exit(1)
+
+    run(builder, cur_working_dir)
+
+
