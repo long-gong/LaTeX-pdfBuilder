@@ -79,7 +79,7 @@ class PdfBuilder(object):
     #
     # E.g.: self.path = prefs["path"]
     #
-    # Your __init__ method *must* call this (via super) to ensure that
+    # Your __init__.py method *must* call this (via super) to ensure that
     # tex_root is properly split into the root tex file's directory,
     # its base name, and extension, etc.
     def __init__(self, tex_root, output, engine, options, aux_directory,
