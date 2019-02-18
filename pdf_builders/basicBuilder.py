@@ -123,17 +123,18 @@ class BasicBuilder(PdfBuilder):
                 else:
                     break
 
-        if get_platform() != u'windows' and FILE_NOT_FOUND_ERROR_REGEX.search(self.out):
-            texliveonfly.append(u'--jobname=' + self.job_name)
-            texliveonfly.append(self.tex_name)
-            yield(texliveonfly, 'running {0}'.format(u'texliveonfly'))
-        else:
-            windows_cmd = DEFAULT_COMMAND_WINDOWS_MIKTEX
-            for i, c in enumerate(windows_cmd):
-                windows_cmd[i] = c.replace(
-                    "-%E", "-" + engine if engine != 'pdflatex' else '-pdf'
-                ).replace("%E", engine)
-            yield (windows_cmd + [self.tex_name], "Invoking " + windows_cmd[0] + "... ")
+        if FILE_NOT_FOUND_ERROR_REGEX.search(self.out):
+            if get_platform() != u'windows':
+                texliveonfly.append(u'--jobname=' + self.job_name)
+                texliveonfly.append(self.tex_name)
+                yield(texliveonfly, 'running {0}'.format(u'texliveonfly'))
+            else:
+                windows_cmd = DEFAULT_COMMAND_WINDOWS_MIKTEX
+                for i, c in enumerate(windows_cmd):
+                    windows_cmd[i] = c.replace(
+                        "-%E", "-" + engine if engine != 'pdflatex' else '-pdf'
+                    ).replace("%E", engine)
+                yield (windows_cmd + [self.tex_name], "Invoking " + windows_cmd[0] + "... ")
 
         # Check for citations
         # We need to run pdflatex twice after bibtex
